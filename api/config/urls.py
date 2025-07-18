@@ -14,7 +14,6 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
-from re import A
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -33,9 +32,7 @@ API_URL = "api"
 
 # OpenAPI / Swagger documentation routes
 open_api_patterns = [
-    path(
-        f"{API_URL}/schema/", SpectacularAPIView.as_view(), name="openapi-schema"
-    ),  # OpenAPI JSON schema endpoint
+    path(f"{API_URL}/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),  # OpenAPI JSON schema endpoint
     path(
         f"{API_URL}/swagger-ui/",
         SpectacularSwaggerView.as_view(url_name="openapi-schema"),
