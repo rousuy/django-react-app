@@ -32,14 +32,20 @@ API_URL = "api"
 
 # OpenAPI / Swagger documentation routes
 open_api_patterns = [
-    path(f"{API_URL}/schema/", SpectacularAPIView.as_view(), name="openapi-schema"),  # OpenAPI JSON schema endpoint
     path(
-        f"{API_URL}/swagger-ui/",
+        "",
+        SpectacularAPIView.as_view(),
+        name="openapi-schema",
+    ),  # OpenAPI JSON schema endpoint
+    path(
+        "swagger-ui/",
         SpectacularSwaggerView.as_view(url_name="openapi-schema"),
         name="swagger-ui",
     ),  # Interactive Swagger UI
     path(
-        f"{API_URL}/redoc/", SpectacularRedocView.as_view(url_name="openapi-schema"), name="redoc"
+        "redoc/",
+        SpectacularRedocView.as_view(url_name="openapi-schema"),
+        name="redoc",
     ),  # Redoc API documentation UI
 ]
 

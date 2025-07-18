@@ -81,8 +81,8 @@ Stacks used:
 ### Option 1: Using Make (Recommended)
 
 ```bash
-git clone https://github.com/yourusername/django-react-architecture.git
-cd django-react-architecture
+git clone https://github.com/rousuy/django-react-app.git
+cd django-react-app
 
 make help       # List available commands
 make env-setup  # Setup .env files
@@ -93,22 +93,22 @@ make up         # Start dev environment
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/django-react-architecture.git
-cd django-react-architecture
+git clone https://github.com/rousuy/django-react-app.git
+cd django-react-app
 
 # Setup environment variables
 chmod +x scripts/setup_envs.sh
 ./scripts/setup_envs.sh
 
 # Start development environment with file watching
-docker compose -f compose.dev.yml --env-file ./api/.env --env-file ./ui/.env up --build --watch
+docker compose -f compose.dev.yml --env-file ./api/.env --env-file ./ui/.env up --build
 ```
 
 ### Access Points
 
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000/api/
-- API Documentation: http://localhost:8000/api/docs/
+- API Documentation: http://localhost:8000/api/schema/swagger-ui/
 
 ### Project Structure
 

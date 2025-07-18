@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     "src.users",
     # third-party
     "rest_framework",
+    "drf_spectacular",
     "django_celery_results",
 ]
 
@@ -77,7 +78,6 @@ if DEBUG == "False":
     INSTALLED_APPS.append("silk")
     MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
 
-ROOT_URLCONF = "config.urls"
 
 TEMPLATES = [
     {
@@ -112,6 +112,7 @@ DATABASES = {
     },
 }
 
+# WARNING: NOT RECOMMENDED FOR PRODUCTION
 # Django cache config using database (PoC only - use Redis in production)
 CACHES = {
     "default": {
@@ -244,7 +245,7 @@ REST_FRAMEWORK = {
 # OpenApi Swagger config
 SPECTACULAR_SETTINGS = {
     "TITLE": "API",
-    "DESCRIPTION": "POC System",
+    "DESCRIPTION": "Django REST API System",
     "VERSION": "0.1.0",
-    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]",
+    "SCHEMA_PATH_PREFIX": r"/api/",
 }
