@@ -1,0 +1,57 @@
+# ==============================================================================
+# 🐍 Dockerfile for Development - Django + uv + System Deps
+# Based on uv Docker image with Python 3.12 on Debian Bookworm Slim
+# More info: https://github.com/astral-sh/uv-docker-example/tree/main
+# ==============================================================================
+ARG PYTHON_VERSION="3.12-bullseye"
+FROM mcr.microsoft.com/vscode/devcontainers/python:1-${PYTHON_VERSION}
+
+WORKDIR /workspace
+
+RUN pip install -U pip wheel uv==0.7.20 && rm -rf /tmp/pip
+
+# UV Environment
+# No bytecode compilation
+ENV UV_COMPILE_BYTECODE=1 \
+    # Use file-based linking instead of symlinks
+    UV_LINK_MODE=copy \
+    # Define path for uv to create the virtual environment
+    UV_PROJECT_ENVIRONMENT=/opt/workspace/venv 
+
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=./api/uv.lock,target=uv.lock \
+    --mount=type=bind,source=./api/pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --extra dev
+
+COPY ./api/pyproject.toml ./api/uv.lock /
+
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --extra dev
+
+RUN chown -R vscode:vscode /workspace /opt/workspace
+
+# Python Path 
+# No stdout buffering
+ENV PYTHONUNBUFFERED=1 \
+    # No .pyc files              
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Include workspace in PYTHONPATH      
+    PYTHONPATH=/workspace \
+    # Prepend venv bin to PATH 
+    PATH="/opt/workspace/venv/bin:$PATH" \
+    # Prevent uv from writing to /home/workspace
+    HOME=/workspace \  
+    # Where uv, ruff, pyright store cache
+    XDG_CACHE_HOME=/workspace/.cache 
+
+USER vscode
+
+# Use Bash with strict error handling for all RUN instructions:
+# -e: Exit on error
+# -u: Error on unset variables
+# -x: Print commands
+# -o pipefail: Fail if any piped command fails
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]

@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pkl
+*.log
+
+# Django
+*.sqlite3
+db.sqlite3
+/media
+/staticfiles
+/static_root
+
+# Env / Secrets
+.env
+*.env
+.env*
+
+# Virtual env
+.venv/
+env/
+venv/
+ENV/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# VS Code / IDEs
+.vscode/
+.idea/
+
+# Coverage / Testing
+htmlcov/
+.coverage
+.tox/
+.nox/
+.pytest_cache/
+test-results/
+
+# Type checking
+.pyright/
+pyrightconfig.json
+.pyright_cache/
+
+# Migrations (opcional)
+**/migrations/*.py
+!**/migrations/__init__.py
+
+# Docker
+*.pid
+__docker_volume/
+
+# macOS system file
+.DS_Store
+
+# Others
+.ruff_*
+.cache

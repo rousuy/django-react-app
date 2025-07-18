@@ -1,0 +1,110 @@
+# ================================== NOTES =====================================
+# 🐍 Production ready builds
+# More info: https://github.com/astral-sh/uv-docker-example/tree/main
+# Use official uv image with Python 3.12 on Debian Bookworm Slim for building
+
+# ============================== STAGE 1: Builder ==============================
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+
+# Set working directory for build operations
+WORKDIR /builder
+
+# Disable bytecode compilation during build to reduce image size
+ENV UV_COMPILE_BYTECODE=1 \
+    # Use file-based linking to ensure compatibility across layers
+    UV_LINK_MODE=copy \
+    # Define path for uv to create the virtual environment
+    UV_PROJECT_ENVIRONMENT=/opt/builder/venv \
+    # Disable Python downloads, because we want to use the system interpreter
+    # across both images. 
+    UV_PYTHON_DOWNLOADS=0
+
+# Install system build dependencies required for Python packages
+RUN set -eux; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    # C/C++ compilation tools
+    build-essential \
+    # PostgreSQL development headers for psycopg2
+    libpq-dev \
+    # JPEG image processing library headers for Pillow
+    libjpeg-dev \
+    # Compression library headers for Pillow
+    zlib1g-dev \
+    # GNU gettext utilities for Django internationalization
+    gettext \
+    # Clean up package cache to reduce image size
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
+
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY . /builder
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
+
+# ============================= STAGE 2: Runtime =============================
+# Use Python 3.12 slim image for minimal runtime footprint
+FROM python:3.12-slim-bookworm AS runtime
+
+# Set environment variables for safer and optimized Python runtime
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPATH=/app \
+    PATH="/opt/app/venv/bin:$PATH"
+
+# Install only runtime dependencies
+RUN set -eux; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+    libpq5 \
+    libjpeg62-turbo \
+    zlib1g \
+    gettext \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Create restricted system user for running the application
+RUN set -eux; \
+    useradd --system --no-create-home --shell /usr/sbin/nologin appuser; \
+    mkdir -p /app /opt/app/venv; \
+    chown -R appuser:appuser /app /opt/app
+
+# Copy the pre-built Python virtual environment from the builder stage,
+# setting ownership to the non-root user 'appuser' for proper permissions
+COPY --from=builder --chown=appuser:appuser /opt/builder/venv /opt/app/venv
+
+# Copy production entrypoint scripts to the designated directory,
+# ensuring 'appuser' owns the files for secure execution
+COPY --from=builder --chown=appuser:appuser /builder/docker/entrypoints/*.prod.sh /opt/app/entrypoints/
+RUN chmod +x /opt/app/entrypoints/*.prod.sh
+
+# Copy the Django application source code and configuration
+# from the builder stage to the runtime image
+COPY --from=builder /builder/config /app/config
+COPY --from=builder /builder/src /app/src
+COPY --from=builder /builder/manage.py /app/
+
+# Recursively fix ownership of all files in /app
+# so 'appuser' has the appropriate permissions to run the application
+RUN chown -R appuser:appuser /app
+
+# Remove the /app/docker directory if it exists,
+# cleaning up unnecessary files from the final image
+RUN rm -rf /app/docker
+
+# Set working directory
+WORKDIR /app
+
+# Drop to non-root user
+USER appuser
+
+# Use Bash with strict error handling for all RUN instructions:
+# -e: Exit immediately if a command exits with a non-zero status
+# -u: Treat unset variables as errors
+# -o pipefail: Return the exit code of the rightmost command in a pipeline that failed
+SHELL ["/bin/bash", "-euo", "pipefail", "-c"]

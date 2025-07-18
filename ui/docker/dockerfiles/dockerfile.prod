@@ -1,0 +1,27 @@
+# ======================= Stage 1: Build static files with Vite ============================
+FROM node:20-slim AS builder
+
+# Set working directory
+WORKDIR /app
+
+# Copy package files separately for caching
+COPY package.json package-lock.json ./
+
+# Install dependencies (cached if lockfiles don't change)
+RUN npm install --frozen-lockfile
+
+# Copy the rest of the application
+COPY . /app
+
+# Build the production-optimized frontend
+RUN npm run build
+
+# If you'll serve via S3 or CloudFront, skip this stage entirely.
+# Otherwise, uncomment this stage to serve via nginx or http-server
+# ======================= Stage 2: Final minimal image (optional) ==========================
+# FROM nginx:alpine
+# COPY --from=builder /app/dist /usr/share/nginx/html
+# EXPOSE 80
+# CMD ["nginx", "-g", "daemon off;"]
+
+# If using S3, ECS will stop here after build and you just copy `/app/dist`

@@ -1,0 +1,98 @@
+# ==============================================================================
+# 🐍 Dockerfile for Development - Django + uv + System Deps
+# Based on uv Docker image with Python 3.12 on Debian Bookworm Slim
+# More info: https://github.com/astral-sh/uv-docker-example/tree/main
+# ==============================================================================
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+
+# Set working directory
+WORKDIR /app
+
+# UV Environment
+    # No bytecode compilation
+ENV UV_COMPILE_BYTECODE=1 \
+    # Use file-based linking instead of symlinks
+    UV_LINK_MODE=copy \
+    # Define path for uv to create the virtual environment
+    UV_PROJECT_ENVIRONMENT=/opt/app/venv 
+
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --extra dev
+
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --extra dev
+
+
+# System Dependencies ==============================
+RUN set -eux; \
+    apt-get update && apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends \
+    # C/C++ compiler
+    build-essential \  
+    # PostgreSQL headers             
+    libpq-dev \
+    # Pillow image library                  
+    libjpeg-dev \      
+    # Compression library             
+    zlib1g-dev \
+    # Django translation tools          
+    gettext \                       
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Python Path 
+    # No stdout buffering
+ENV PYTHONUNBUFFERED=1 \
+    # No .pyc files              
+    PYTHONDONTWRITEBYTECODE=1 \
+    # Include app in PYTHONPATH      
+    PYTHONPATH=/app \
+    # Prepend venv bin to PATH 
+    PATH="/opt/app/venv/bin:$PATH" \
+    # Prevent uv from writing to /home/appuser
+    HOME=/app \  
+    # Where uv, ruff, pyright store cache
+    XDG_CACHE_HOME=/app/.cache 
+
+# Accept UID/GID args
+ARG USER_ID
+ARG GROUP_ID
+
+# This section ensures that the container runs with a non-root user,
+# improving compatibility when mounting volumes.
+RUN set -eux; \
+    addgroup --gid "$GROUP_ID" appuser; \
+    adduser \
+        --disabled-password \ 
+        --gecos "" \ 
+        --uid "$USER_ID" \
+        --gid "$GROUP_ID" \
+        --no-create-home \
+        appuser; 
+
+# Copy dev entrypoint scripts to the designated directory,
+COPY docker/entrypoints/*.dev.sh /opt/app/entrypoints/
+
+# Ensure correct ownership for both /app and /opt/app for the non-root user
+# ensuring 'appuser' owns the files for secure execution
+RUN chown -R "$USER_ID:$GROUP_ID" /app /opt/app && \
+    chmod +x /opt/app/entrypoints/*.dev.sh
+
+# Remove the /app/docker directory if it exists,
+# cleaning up unnecessary files from image
+RUN rm -rf /app/docker
+
+# Drop to non-root user
+USER appuser
+
+# Use Bash with strict error handling for all RUN instructions:
+# -e: Exit on error
+# -u: Error on unset variables
+# -x: Print commands
+# -o pipefail: Fail if any piped command fails
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]

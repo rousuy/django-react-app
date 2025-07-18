@@ -1,0 +1,76 @@
+# Sensitive files
+.env
+*.env
+.env*
+
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Packages and build directories
+*.egg
+*.egg-info/
+dist/
+build/
+
+# SQLite and local databases
+*.sqlite3
+
+# Logs
+*.log
+
+# Git and Docker
+.git/
+.gitignore
+.dockerignore
+
+# IDEs and editors
+.devcontainer
+.vscode/
+.idea/
+*.swp
+
+# Docker and Compose files
+dockerfile/
+dockerfile.*
+compose.*
+
+# Type checking
+.pyright/
+pyrightconfig.json
+.pyright_cache/
+
+# Tests (optional)
+__tests__/
+.pytest_*
+
+# Documentation (optional)
+docs/
+*.md
+
+# CI/CD and local configs (optional)
+.github/
+.gitlab-ci.yml
+makefile
+contrib/
+scripts/
+fixtures/
+
+# MacOS files
+*.DS_Store
+
+# Ruff cache
+.ruff_*
+.cache
+
+# bash stuffs
+.bash_*
+

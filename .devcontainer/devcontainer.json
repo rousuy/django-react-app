@@ -1,0 +1,39 @@
+    // ========= VSCode Python settings for development only =========
+    // These settings allow VSCode to detect the Python interpreter
+    // inside the container for better local development experience.
+    // Prefer using the provided Makefile commands with Docker Compose.
+    // ===============================================================
+{
+  "name": "Django REST API",
+  "build": {
+    "dockerfile": "dockerfile.vscode",
+    "context": "..",
+    "args": {
+      "PYTHON_VERSION": "3.12-bullseye"
+    }
+  },
+  "customizations": {
+    "settings": {
+      "python.pythonPath": "/opt/workspace/venv/bin/python",
+      "python.analysis.typeCheckingMode": "strict",
+      "python.formatting.provider": "ruff",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.fixAll": true,                
+        "source.organizeImports": true 
+      }
+    },
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-pyright.pyright",
+        "charliermarsh.ruff",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.makefile-tools",
+        "redhat.vscode-yaml"
+      ]
+    }
+  },
+  "remoteUser": "vscode"
+}

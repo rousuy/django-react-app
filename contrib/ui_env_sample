@@ -1,0 +1,5 @@
+# Ui 
+UI_PORT=3000
+
+# URL of the backend API used by the frontend application
+VITE_API_URL=http://localhost:8000/api
