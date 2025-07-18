@@ -14,6 +14,7 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from re import A
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -28,31 +29,31 @@ from config.views import healthcheck
 
 # Constants for base URL paths
 DJANGO_URL = "django"
-API_URL = "api/v1"
+API_URL = "api"
 
 # OpenAPI / Swagger documentation routes
 open_api_patterns = [
     path(
-        "", SpectacularAPIView.as_view(), name="openapi-schema"
-    ),  # Route: api/v1/schema/ - OpenAPI JSON schema endpoint
+        f"{API_URL}/schema/", SpectacularAPIView.as_view(), name="openapi-schema"
+    ),  # OpenAPI JSON schema endpoint
     path(
-        "swagger-ui/",
+        f"{API_URL}/swagger-ui/",
         SpectacularSwaggerView.as_view(url_name="openapi-schema"),
         name="swagger-ui",
-    ),  # Route: api/v1/schema/swagger-ui/ - Interactive Swagger UI
+    ),  # Interactive Swagger UI
     path(
-        "redoc/", SpectacularRedocView.as_view(url_name="openapi-schema"), name="redoc"
-    ),  # Route: api/v1/schema/redoc/ - Redoc API documentation UI
+        f"{API_URL}/redoc/", SpectacularRedocView.as_view(url_name="openapi-schema"), name="redoc"
+    ),  # Redoc API documentation UI
 ]
 
 urlpatterns = [
-    # Healthcheck route
-    path("health/", healthcheck, name="healthcheck"),
-    # Django Admin route
+    # Django Admin interface (internal administrative access)
     path(f"{DJANGO_URL}/admin/", admin.site.urls),
     # API routes including OpenAPI schema and docs
     path(f"{API_URL}/schema/", include(open_api_patterns), name="api-schema"),
-    # Api paths
+    # Health check endpoint for uptime monitoring
+    path(f"{API_URL}/health/", healthcheck, name="healthcheck"),
+    # Main API endpoints for user-related operations
     path(f"{API_URL}/", include("src.users.urls"), name="users"),
 ]
 
@@ -61,4 +62,4 @@ urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 # Debug-only routes
 if settings.DEBUG == "False":
-    urlpatterns += [path("silk/", include("silk.urls"), name="silk")]  # Route: silk/ - profiling ui
+    urlpatterns += [path(f"{DJANGO_URL}/silk/", include("silk.urls"), name="silk")]  # Django profiling ui
