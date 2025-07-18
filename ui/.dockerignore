@@ -1,0 +1,44 @@
+# Do not copy node_modules folder (install fresh in container)
+node_modules/
+
+# Ignore npm/yarn log files
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Ignore environment variable files (handle secrets outside image)
+.env
+*.env
+.env*
+
+# Ignore build output folder (will be generated inside container)
+dist/
+
+# Ignore Git metadata and ignore files
+.git/
+.gitignore
+
+# Ignore IDE/editor config folders and swap files
+.vscode/
+.idea/
+*.swp
+
+# Ignore Docker and Compose config files
+Dockerfile*
+compose*
+.dockerignore
+
+# Ignore macOS system files
+*.DS_Store
+
+# Ignore ESLint config file (not needed in image)
+.eslintrc.cjs
+
+# Ignore docker folder (local scripts/config, not needed in image)
+docker
+
+# Misc
+.DS_Store
+Thumbs.db
+coverage/
+*.tmp
