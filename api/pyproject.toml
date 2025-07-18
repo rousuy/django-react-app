@@ -1,0 +1,178 @@
+# ================================ Project Metadata ================================
+[project]
+name = "django-react"
+version = "0.0.1"
+description = "Professional Django REST API + React frontend with Celery async processing"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Rodrigo", email = "rodrigo.revisit532@passmail.com" }]
+keywords = ["django", "react", "celery", "rest-api", "postgresql", "rabbitmq"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Web Environment",
+    "Framework :: Django :: 4.2",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.12"
+
+# ============================== Production Dependencies ==============================
+# Core dependencies required for production deployment
+dependencies = [
+    # Core Frameworks
+    "django==4.2.10",                    # Django web framework
+    "djangorestframework==3.14.0",       # REST API framework
+    "drf-spectacular==0.27.1",           # OpenAPI/Swagger documentation
+
+    # Asynchronous Tasks
+    "celery==5.5.3",                     # Distributed task queue
+    "kombu==5.5.2",                      # Messaging library for Celery
+    "django-celery-results==2.5.1",      # Save celery results on app db
+
+    # Cloud & Storage
+    "boto3==1.34.90",                    # AWS SDK for S3 storage
+    "django-storages==1.14.2",           # Cloud storage backends
+
+    # Server & HTTP
+    "gunicorn==22.0.0",                  # WSGI HTTP server
+    "whitenoise==6.7.0",                 # Static file serving
+
+    # Database
+    "psycopg==3.2.9",                    # PostgreSQL adapter
+]
+
+# ============================== Development Dependencies ==============================
+# Additional tools and libraries for development, testing, and debugging
+[project.optional-dependencies]
+dev = [
+    # Development & Debugging
+    "django-silk==5.4.0",                # Profiling and monitoring
+    "django-extensions==3.2.3",          # Useful Django extensions
+    "Pillow==10.4.0",                    # Image processing library
+    
+    # Code Quality & Formatting
+    "ruff==0.12.3",                      # Fast Python linter and formatter
+    "pyright==1.1.403",                  # Static type checker
+    "django-stubs==4.2.7",               # Type stubs for Django
+    
+    # Testing Framework
+    "pytest==8.2.2",                     # Testing framework
+    "pytest-django==4.8.0",              # Django integration for pytest
+    "pytest-cov==5.0.0",                 # Coverage reporting
+    
+    # Build Tools
+    "setuptools<81",                      # Package building tools
+]
+
+# ============================== Code Quality Configuration ==============================
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+fix = true
+show-fixes = true
+indent-width = 4
+exclude = [
+    "venv",
+    ".venv",
+    "env",
+    ".env",
+    "__pycache__",
+    "src/*/migrations",
+    "**/migrations/**",
+    ".cache",
+    "manage.py",
+]
+
+[tool.ruff.lint]
+select = [
+    "ASYNC",  # async/await best practices
+    "A",      # flake8-builtins
+    "ANN",    # flake8-annotations
+    "B",      # flake8-bugbear
+    "BLE",    # flake8-blind-except
+    "C4",     # flake8-comprehensions
+    "C90",    # mccabe complexity
+    "COM",    # flake8-commas
+    "E",      # pycodestyle errors
+    "EM",     # flake8-errmsg
+    "ERA",    # eradicate commented code
+    "EXE",    # flake8-executable
+    "F",      # pyflakes
+    "FBT",    # flake8-boolean-trap
+    "FIX",    # flake8-fixme
+    "I",      # isort
+    "ICN",    # flake8-import-conventions
+    "ISC",    # flake8-implicit-str-concat
+    "Q",      # flake8-quotes
+    "RET",    # flake8-return
+    "RSE",    # flake8-raise
+    "S",      # flake8-bandit security
+    "SIM",    # flake8-simplify
+    "SLF",    # flake8-self
+    "T10",    # flake8-debugger
+    "T20",    # flake8-print
+    "TC",     # flake8-type-checking
+    "TRY",    # tryceratops
+    "UP",     # pyupgrade
+    "W",      # pycodestyle warnings
+    "YTT",    # flake8-2020
+    "RUF",    # ruff-specific rules
+    "N",      # pep8-naming
+]
+ignore = [
+    "T201",   # Allow print statements for debugging
+    "COM812", # Trailing comma conflicts with formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = [
+    "ANN201",  # Allow missing return type annotations in tests
+    "S101",    # Allow assert statements in tests
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "src", "users"]
+
+# ============================== Type Checking Configuration ==============================
+[tool.pyright]
+typeCheckingMode = "basic"
+reportOptionalSubscript = false
+pythonVersion = "3.12"
+include = ["config", "src", "tests"]
+exclude = [
+    "**/venv",
+    "**/.venv",
+    "**/env",
+    "**/.env",
+    "**/node_modules",
+    "**/__pycache__",
+    "src/*/migrations",
+    "**/migrations/**",
+    ".ruff_cache",
+    ".pyright_cache",
+    ".cache*"
+]
+venv = ".venv"
+venvPath = "."
+executionEnvironments = [{ root = "." }]
+
+# ============================== Testing Configuration ==============================
+[tool.pytest.ini_options]
+addopts = "-s --color=yes --tb=short --strict-markers --strict-config"
+pythonpath = ["."]
+testpaths = ["tests"]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]

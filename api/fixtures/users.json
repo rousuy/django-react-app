@@ -1,0 +1,19 @@
+[
+  {
+    "model": "users.user",
+    "fields": {
+      "password": "pbkdf2_sha256$600000$lV9WDrG51KDyBPsVTrMzqw$bM7J3Wp3qX49S8ANnpFHd73GKgKVscWh6qkVT6NRKOw=",
+      "last_login": null,
+      "is_superuser": true,
+      "first_name": "Admin",
+      "last_name": "User",
+      "is_staff": true,
+      "is_active": true,
+      "date_joined": "2025-07-09T15:44:13.389Z",
+      "username": "admin",
+      "email": "admin@test.com",
+      "groups": [],
+      "user_permissions": []
+    }
+  }
+]
