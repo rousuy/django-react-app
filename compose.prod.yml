@@ -1,0 +1,38 @@
+# ============================ Production Environment ==============================
+name: django-react-prod
+
+services:
+  # ============================== Django API Server ==============================
+  django_api:
+    image: django-react/api:prod
+    container_name: django-react-api-prod
+    restart: unless-stopped
+    build:
+      context: ./api
+      dockerfile: ./docker/dockerfiles/dockerfile.prod
+    ports:
+      - "${DJANGO_PORT}:8000"
+    command: ["/opt/app/entrypoints/entrypoint.api.prod.sh"]
+
+  # ============================== Celery Task Worker =============================
+  celery_worker:
+    image: django-react/celery:prod
+    container_name: django-react-celery-prod
+    restart: unless-stopped
+    build:
+      context: ./api
+      dockerfile: ./docker/dockerfiles/dockerfile.prod
+    command: ["/opt/app/entrypoints/entrypoint.celery.prod.sh"]
+
+  # ============================== React Frontend ================================
+  react_ui:
+    image: django-react/ui:prod
+    container_name: django-react-ui-prod
+    restart: unless-stopped
+    build:
+      context: ./ui
+      dockerfile: ./docker/dockerfiles/dockerfile.prod
+    ports:
+      - "${REACT_PORT}:3000"
+    env_file:
+      - ./ui/.env

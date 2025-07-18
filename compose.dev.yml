@@ -1,0 +1,164 @@
+# =========================== Development Environment ==============================
+# Docker Compose configuration for Django + React + Celery development stack
+# Includes: PostgreSQL, Rabbitmq, Django API, Celery Worker, React UI
+
+name: django-react-dev
+
+services:
+  # ============================== Database Layer ==================================
+  database:
+    image: postgres:15.4-alpine
+    container_name: django-react-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dev-db}
+      POSTGRES_USER: ${POSTGRES_USR:-dev}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWD:-dev-pwd}
+      # Performance optimizations for development
+      POSTGRES_INITDB_ARGS: '--encoding=UTF-8 --lc-collate=C --lc-ctype=C'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Optional: Custom PostgreSQL configuration
+      # - ./docker/postgres/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - '${DB_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    env_file:
+      - ./api/.env
+    networks:
+      - react-django-net
+
+  # ============================== Message Broker ==============================
+  message_broker:
+    image: rabbitmq:3.12-management-alpine
+    container_name: django-react-rabbitmq-dev
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWD:-admin-dev}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+      # Reduce log verbosity for cleaner development experience
+      RABBITMQ_LOGS: '-'
+      RABBITMQ_SASL_LOGS: '-'
+      RABBITMQ_LOG_LEVEL: warning
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - '${RABBITMQ_PORT:-5672}:5672'
+      - '${RABBITMQ_MGMT_PORT:-15672}:15672' # Management UI
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    env_file:
+      - ./api/.env
+    networks:
+      - react-django-net
+
+  # ============================== Django API Server ==============================
+  django_api:
+    image: django-react/api:dev
+    container_name: django-react-api-dev
+    restart: on-failure
+    build:
+      context: ./api
+      dockerfile: ./docker/dockerfiles/dockerfile.dev
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    # Note: Tried using 'develop' with watch mode for faster sync,
+    # but faced some issues - reverted to using volumes for stability.
+    # ref: https://docs.docker.com/compose/file-watch/#compose-watch-versus-bind-mounts
+    volumes:
+     - ./api:/app  # Mounts local source code for live development
+    ports:
+      - "${API_PORT:-8000}:8000"
+    env_file:
+      - ./api/.env  
+    depends_on:
+      - database
+      - message_broker
+    command: ["/opt/app/entrypoints/entrypoint.api.dev.sh"]
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check", "--deploy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - react-django-net
+
+  # ============================== Celery Task Worker ==============================
+  celery_worker:
+    image: django-react/celery:dev
+    container_name: django-react-celery-dev
+    restart: on-failure
+    build:
+      context: ./api
+      dockerfile: ./docker/dockerfiles/dockerfile.dev
+      args:
+        USER_ID: ${USER_ID:-1000}
+        GROUP_ID: ${GROUP_ID:-1000}
+    # =================== Same Notes on Django API above ==========================
+    volumes:
+     - ./api:/app
+    env_file:
+      - ./api/.env
+    depends_on:
+      - message_broker
+      - django_api
+    command: ['/opt/app/entrypoints/entrypoint.celery.dev.sh']
+    networks:
+      - react-django-net
+
+  # ============================== React Frontend ================================
+  react_ui:
+    image: django-react/ui:dev
+    container_name: django-react-ui-dev
+    restart: unless-stopped
+    build:
+      context: ./ui
+      dockerfile: ./docker/dockerfiles/dockerfile.dev
+    # =================== Same Notes on Django API above =========================
+    volumes:
+     - ./ui:/app                      
+     - node_modules:/app/node_modules  # Keeps inside container to avoid conflicts
+    ports:
+      - '${UI_PORT:-3000}:3000'
+    env_file:
+      - ./ui/.env
+    depends_on:
+      - django_api
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:3000']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - react-django-net
+
+# ============================== Persistent Storage ===============================
+volumes:
+  node_modules:
+    name: django-react-node-modules
+  postgres_data:
+    name: django-react-postgres-dev
+    driver: local
+  rabbitmq_data:
+    name: django-react-rabbitmq-dev
+    driver: local
+
+# ============================== Network Configuration ==============================
+networks:
+  react-django-net:
+    name: react-django-net
+    driver: bridge
+    internal: false
