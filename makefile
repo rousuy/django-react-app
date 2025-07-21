@@ -19,6 +19,12 @@ RUN_NO_TTY := $(RUN) -T
 # Service definitions matching compose.dev.yml
 SERVICES := react_ui django_api database message_broker celery_worker
 
+# Args for dumping fixtures with natural keys and indentation
+FIXTURE_ARGS := fixtures
+USER_FIXTURE_ARGS := $(FIXTURE_ARGS)/users.json
+AUTH_FIXTURE_ARGS := $(FIXTURE_ARGS)/auth.json
+DUMP_ARGS := --natural-primary --natural-foreign --indent 2 > ./api
+
 # ================================= Default Target ===================================
 .DEFAULT_GOAL := help 
 
@@ -236,15 +242,15 @@ api-reset-db:
 # Export current data as fixtures
 dump-fixtures:
 	@echo "📤 Exporting database fixtures..."
-	@make exec-api CMD="$(UV_MANAGE) dumpdata auth --natural-primary --natural-foreign --indent 2 > fixtures/auth.json"
-	@make exec-api CMD="$(UV_MANAGE) dumpdata users --natural-primary --natural-foreign --indent 2 > fixtures/users.json"
+	@make exec-api CMD="$(UV_MANAGE) dumpdata auth $(DUMP_ARGS)/$(AUTH_FIXTURE_ARGS)"
+	@make exec-api CMD="$(UV_MANAGE) dumpdata users $(DUMP_ARGS)/$(USER_FIXTURE_ARGS)"
 	@echo "✅ Fixtures exported to fixtures/ directory"
 
 # Load test data fixtures
 load-fixtures:
 	@echo "📥 Loading database fixtures..."
-	@make exec-api CMD="$(UV_MANAGE) loaddata fixtures/auth.json"
-	@make exec-api CMD="$(UV_MANAGE) loaddata fixtures/users.json"
+	@make exec-api CMD="$(UV_MANAGE) loaddata $(AUTH_FIXTURE_ARGS)"
+	@make exec-api CMD="$(UV_MANAGE) loaddata $(USER_FIXTURE_ARGS)"
 	@echo "✅ Fixtures loaded successfully"
 
 # ============================== Testing ==============================
