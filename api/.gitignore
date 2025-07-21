@@ -60,3 +60,4 @@ __docker_volume/
 # Others
 .ruff_*
 .cache
+.bash_history

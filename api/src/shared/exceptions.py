@@ -11,7 +11,7 @@ class CustomAPIException(APIException):
     """
 
     status_code: int = status.HTTP_400_BAD_REQUEST
-    default_detail: str | dict[str, Promise] | Promise = _("Invalid input.")
+    default_detail: str | dict[str, Promise | str] | Promise = _("Invalid input.")
     default_code: str = "api_exception_error"
 
 

@@ -25,4 +25,10 @@ class InvalidEmailError(CustomAPIException):
     default_detail = _("The email address is invalid.")
 
 
-print(RequiredFieldError(field="test", label="tete"))
+class PasswordMistmatchError(CustomAPIException):
+    """
+    Raised when password mismatch.
+    """
+
+    default_code = "password_mismatch"
+    default_detail = _("The passwords do not match.")

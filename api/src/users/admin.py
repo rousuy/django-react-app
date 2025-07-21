@@ -1,25 +1,34 @@
-from typing import ClassVar
 
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.translation import gettext_lazy as _
 
+from src.users.models.profile_model import Profile
+
 User = get_user_model()
+
+
+class ProfileInline(admin.StackedInline):
+    model = Profile
+    can_delete = False
+    verbose_name_plural = "Profile"
+    fk_name = "user"
+    extra = 0
 
 
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     model: type[User] = User  # type: ignore
-    test = "test"
-    ordering: ClassVar[list[str]] = ["-created_at"]  # type: ignore
+    ordering: list[str] = ["-created_at"]  # Noqa # type: ignore
     list_display = ("email", "is_active", "is_staff", "created_at")
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
-    search_fields = ("email", "username")
+    search_fields = ("email",)
     readonly_fields = ("last_login", "created_at")
+    inlines = [ProfileInline]  # Noqa
 
     fieldsets = (
-        (None, {"fields": ("email", "username", "password")}),
+        (None, {"fields": ("id", "email", "password")}),
         (
             _("Permissions"),
             {
@@ -42,7 +51,6 @@ class UserAdmin(BaseUserAdmin):
                 "classes": ("wide",),
                 "fields": (
                     "email",
-                    "username",
                     "password1",
                     "password2",
                     "is_staff",
