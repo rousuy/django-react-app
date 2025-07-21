@@ -20,14 +20,14 @@ class ProfileInline(admin.StackedInline):
 class UserAdmin(BaseUserAdmin):
     model: type[User] = User  # type: ignore
     ordering: list[str] = ["-created_at"]  # Noqa # type: ignore
-    list_display = ("email", "is_active", "is_staff", "created_at")
+    list_display = ("id", "email", "is_active", "is_staff", "created_at")
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
     search_fields = ("email",)
     readonly_fields = ("last_login", "created_at")
     inlines = [ProfileInline]  # Noqa
 
     fieldsets = (
-        (None, {"fields": ("id", "email", "password")}),
+        (None, {"fields": ("email",)}),
         (
             _("Permissions"),
             {
