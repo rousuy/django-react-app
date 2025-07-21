@@ -32,3 +32,22 @@ class PasswordMistmatchError(CustomAPIException):
 
     default_code = "password_mismatch"
     default_detail = _("The passwords do not match.")
+
+
+class EmailMistmatchError(CustomAPIException):
+    """
+    Raised when email mismatch.
+    """
+
+    default_code = "email_mismatch"
+    default_detail = _("Current email does not match.")
+
+
+
+class EmailValidationError(CustomAPIException):
+    """
+    Raised when email mismatch.
+    """
+
+    default_code = "email_validation_error"
+    default_detail = _("New email must be different from the current email.")
