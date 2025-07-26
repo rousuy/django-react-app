@@ -25,6 +25,15 @@ class InvalidEmailError(CustomAPIException):
     default_detail = _("The email address is invalid.")
 
 
+class PasswordInvalidError(CustomAPIException):
+    """
+    Raised when the provided password is invalid.
+    """
+
+    default_code = "invalid_password"
+    default_detail = _("The provided password is invalid.")
+
+
 class PasswordMistmatchError(CustomAPIException):
     """
     Raised when password mismatch.

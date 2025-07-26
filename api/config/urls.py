@@ -56,6 +56,8 @@ urlpatterns = [
     path(f"{API_URL}/schema/", include(open_api_patterns), name="api-schema"),
     # Health check endpoint for uptime monitoring
     path(f"{API_URL}/health/", healthcheck, name="healthcheck"),
+    # JWT Token endpoints
+    path(f"{API_URL}/", include("src.identity.urls"), name="identity"),
     # Main API endpoints for user-related operations
     path(f"{API_URL}/", include("src.users.urls"), name="users"),
 ]

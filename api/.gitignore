@@ -46,10 +46,6 @@ test-results/
 pyrightconfig.json
 .pyright_cache/
 
-# Migrations (opcional)
-**/migrations/*.py
-!**/migrations/__init__.py
-
 # Docker
 *.pid
 __docker_volume/

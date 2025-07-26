@@ -54,6 +54,7 @@ class UserListSerializer(BaseUserSerializer):
         read_only_fields: ClassVar[list[str]] = [*BaseUserSerializer.Meta.read_only_fields, "email"]
 
 
+
 class PasswordChangeSerializer(serializers.Serializer):
     old_password = serializers.CharField(
         write_only=True,
@@ -65,11 +66,19 @@ class PasswordChangeSerializer(serializers.Serializer):
         label=_("New password"),
         style={"input_type": "password"},
     )
+    new_password_retype = serializers.CharField(
+        write_only=True,
+        label=_("Retype new password"),
+        style={"input_type": "password"},
+    )
 
     def validate(self, attrs: dict[str, str]) -> dict[str, str]:
-        user: User = self.context["request"].user
+        user = self.context["request"].user
 
         if not user.check_password(attrs["old_password"]):
+            raise exceptions.PasswordInvalidError
+
+        if attrs["new_password"] != attrs["new_password_retype"]:
             raise exceptions.PasswordMistmatchError
 
         try:
@@ -81,7 +90,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def save(self, **kwargs: dict[str, Any]) -> User:
         user: User = self.context["request"].user
-        user.set_password(self.validated_data["new_password"])  # type: ignore
+        user.set_password(self.validated_data["new_password"])
         user.save(update_fields=["password"])
         return user
 

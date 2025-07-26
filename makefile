@@ -232,8 +232,7 @@ api-reset-db:
 	if [[ $$REPLY =~ ^[Yy]$$ ]]; then \
 		echo "\n🗄️  Resetting database..."; \
 		make exec-api CMD="$(UV_MANAGE) flush --noinput"; \
-		make migrate; \
-		make create-cache-table; \
+		make api-migrations; \
 		echo "✅ Database reset completed"; \
 	else \
 		echo "\n❌ Database reset cancelled"; \
@@ -248,6 +247,7 @@ dump-fixtures:
 
 # Load test data fixtures
 load-fixtures:
+	@make api-reset-db
 	@echo "📥 Loading database fixtures..."
 	@make exec-api CMD="$(UV_MANAGE) loaddata $(AUTH_FIXTURE_ARGS)"
 	@make exec-api CMD="$(UV_MANAGE) loaddata $(USER_FIXTURE_ARGS)"

@@ -28,6 +28,7 @@ dependencies = [
     "django==4.2.10",                    # Django web framework
     "djangorestframework==3.14.0",       # REST API framework
     "drf-spectacular==0.27.1",           # OpenAPI/Swagger documentation
+    "djangorestframework-simplejwt==5.3.1", # JWT authentication
 
     # Asynchronous Tasks
     "celery==5.5.3",                     # Distributed task queue

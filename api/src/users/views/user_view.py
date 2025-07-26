@@ -1,10 +1,15 @@
+from typing import ClassVar
+
+from django.contrib.auth import get_user_model
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, BasePermission, IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from src.users.models import User
 from src.users.serializers import user_serializer
+
+User = get_user_model()
 
 
 class UserViewSet(
@@ -14,6 +19,13 @@ class UserViewSet(
     viewsets.GenericViewSet,
 ):
     queryset = User.objects.all()
+    permission_classes: ClassVar[list[type[BasePermission]]] = [IsAuthenticated]
+
+    def get_permissions(self) -> list[BasePermission]:
+        """Dynamically override permissions for specific actions."""
+        if self.action == "create":
+            return [AllowAny()]
+        return super().get_permissions()
 
     def get_serializer_class(self) -> type:
         serializers_map = {
@@ -31,7 +43,7 @@ class UserViewSet(
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(status=status_code)
+        return Response({"detail": "OK"}, status=status_code)
 
     @action(detail=True, methods=["post"], url_path="change-password")
     def change_password(self, request: Request, pk: int) -> Response:
